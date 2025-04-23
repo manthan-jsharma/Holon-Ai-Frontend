@@ -113,8 +113,6 @@ John: Alright, let's wrap up then. Thank you everyone for your input.
 };
 
 export default function MeetingDetails() {
-  const params = useParams();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [meeting] = useState(MEETING_DETAILS);
 
