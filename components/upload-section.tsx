@@ -22,7 +22,7 @@ export default function UploadSection() {
   const [file, setFile] = useState<File | null>(null);
   const [meetingTitle, setMeetingTitle] = useState("");
   const [primaryLanguage, setPrimaryLanguage] = useState("english");
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

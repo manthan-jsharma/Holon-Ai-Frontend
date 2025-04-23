@@ -81,13 +81,6 @@ export default function MeetingsList() {
     router.push(`/meetings/${id}`);
   };
 
-  const handleExportPDF = (id: string) => {
-    toast.info("Exporting PDF", {
-      description: "Your meeting notes are being exported as PDF.",
-    });
-    // In a real implementation, this would trigger the PDF export
-  };
-
   const handleDeleteMeeting = (id: string) => {
     setMeetings(meetings.filter((meeting) => meeting.id !== id));
     toast.success("Meeting deleted", {
@@ -165,13 +158,7 @@ export default function MeetingsList() {
                           <FileText className="mr-2 h-4 w-4" />
                           View Notes
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleExportPDF(meeting.id)}
-                          disabled={meeting.status !== "completed"}
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Export PDF
-                        </DropdownMenuItem>
+
                         <DropdownMenuItem
                           onClick={() => handleDeleteMeeting(meeting.id)}
                           className="text-red-600"
