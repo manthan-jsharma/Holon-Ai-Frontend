@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Multilingual Meeting Assistant Backend
+This is the FastAPI backend for the Multilingual Meeting Assistant application.
 
-## Getting Started
+Features
+Audio transcription using Alibaba Cloud ASR
+Meeting summarization using LangChain with Qwen/DeepSeek
+PDF generation of meeting notes
+RESTful API for CRUD operations
+Setup
+Prerequisites
+Python 3.8 or higher
+Alibaba Cloud account with ASR service enabled
+API keys for Alibaba Cloud
+Environment Variables
+Create a .env file in the root directory with the following variables:
 
-First, run the development server:
+`ALIBABA_ACCESS_KEY_ID=your_access_key_id ALIBABA_ACCESS_KEY_SECRET=your_access_key_secret ALIBABA_APP_KEY=your_app_key`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Installation
+Clone the repository
+Create a virtual environment: `python -m venv venv`
+Activate the virtual environment:
+Windows: venv\Scripts\activate
+macOS/Linux: source venv/bin/activate
+Install dependencies: `pip install -r requirements.txt`
+Run the server: `uvicorn main:app --reload`
+The API will be available at http://localhost:8000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+API Endpoints
+POST /meetings/: Upload a new meeting recording
+GET /meetings/: Get all meetings
+GET /meetings/{meeting_id}: Get a specific meeting
+DELETE /meetings/{meeting_id}: Delete a meeting
+POST /meetings/{meeting_id}/export: Export meeting as PDF
+GET /meetings/{meeting_id}/search: Search within a meeting
+Directory Structure
+main.py: FastAPI application
+database.py: Database configuration
+models.py: SQLAlchemy models
+schemas.py: Pydantic schemas
+services/: Service modules
+transcription_service.py: Alibaba ASR integration
+summarization_service.py: LangChain integration
+pdf_service.py: PDF generation
+uploads/: Directory for uploaded audio files
+pdfs/: Directory for generated PDFs
