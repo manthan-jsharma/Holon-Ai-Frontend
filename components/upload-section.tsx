@@ -17,13 +17,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { uploadMeeting } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function UploadSection() {
   const [file, setFile] = useState<File | null>(null);
   const [meetingTitle, setMeetingTitle] = useState("");
   const [primaryLanguage, setPrimaryLanguage] = useState("english");
-  const [isUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -31,44 +34,47 @@ export default function UploadSection() {
     }
   };
 
-  //   if (!file) {
-  //     toast.error("No file selected", {
-  //       description: "Please select an audio file to upload",
-  //     });
-  //     return;
-  //   }
+  const handleUpload = async () => {
+    if (!file) {
+      toast.error("No file selected", {
+        description: "Please select an audio file to upload",
+      });
+      return;
+    }
 
-  //   if (!meetingTitle.trim()) {
-  //     toast.error("Meeting title required", {
-  //       description: "Please provide a title for your meeting",
-  //     });
-  //     return;
-  //   }
+    if (!meetingTitle.trim()) {
+      toast.error("Meeting title required", {
+        description: "Please provide a title for your meeting",
+      });
+      return;
+    }
 
-  //   setIsUploading(true);
+    setIsUploading(true);
 
-  //   try {
-  //     // In a real implementation, this would call the API to upload and process the file
-  //     await uploadMeeting(file, meetingTitle, primaryLanguage);
+    try {
+      const result = await uploadMeeting(file, meetingTitle, primaryLanguage);
 
-  //     toast.success("Upload successful", {
-  //       description:
-  //         "Your meeting is being processed. You'll be notified when it's ready.",
-  //     });
+      toast.success("Upload successful", {
+        description:
+          "Your meeting is being processed. You'll be notified when it's ready.",
+      });
 
-  //     // Reset form
-  //     setFile(null);
-  //     setMeetingTitle("");
-  //     setPrimaryLanguage("english");
-  //   } catch (error) {
-  //     toast.error("Upload failed", {
-  //       description:
-  //         "There was an error uploading your meeting: ${error.message}. Please try again.",
-  //     });
-  //   } finally {
-  //     setIsUploading(false);
-  //   }
-  // };
+      // Reset form
+      setFile(null);
+      setMeetingTitle("");
+      setPrimaryLanguage("english");
+
+      // Redirect to meetings list
+      router.push("/");
+    } catch (error) {
+      toast.error("Upload failed", {
+        description:
+          "There was an error uploading your meeting. Please try again.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const toggleRecording = () => {
     if (isRecording) {
@@ -181,6 +187,7 @@ export default function UploadSection() {
       </CardContent>
       <CardFooter>
         <Button
+          onClick={handleUpload}
           disabled={isUploading || (!file && !isRecording)}
           className="w-full"
         >
