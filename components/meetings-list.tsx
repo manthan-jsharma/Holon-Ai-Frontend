@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Search, FileText, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, FileText, Download, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,55 +21,36 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
-
-// Mock data for meetings
-const MOCK_MEETINGS = [
-  {
-    id: "1",
-    title: "Q1 Planning Meeting",
-    date: "2023-04-10",
-    duration: "45 min",
-    language: "English",
-    status: "completed",
-  },
-  {
-    id: "2",
-    title: "Product Team Sync",
-    date: "2023-04-08",
-    duration: "30 min",
-    language: "Mixed",
-    status: "completed",
-  },
-  {
-    id: "3",
-    title: "Client Presentation",
-    date: "2023-04-05",
-    duration: "60 min",
-    language: "Mandarin",
-    status: "completed",
-  },
-  {
-    id: "4",
-    title: "Weekly Team Standup",
-    date: "2023-04-03",
-    duration: "15 min",
-    language: "Cantonese",
-    status: "completed",
-  },
-  {
-    id: "5",
-    title: "Marketing Strategy",
-    date: "2023-04-01",
-    duration: "90 min",
-    language: "English",
-    status: "processing",
-  },
-];
+import {
+  getMeetings,
+  deleteMeeting,
+  exportMeetingAsPdf,
+  type Meeting,
+} from "@/lib/api";
 
 export default function MeetingsList() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [meetings, setMeetings] = useState(MOCK_MEETINGS);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      try {
+        const data = await getMeetings();
+        setMeetings(data);
+      } catch (error) {
+        toast.error("Failed to fetch meetings", {
+          description:
+            "Please try again or contact support if the problem persists.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMeetings();
+  }, []);
 
   const filteredMeetings = meetings.filter(
     (meeting) =>
@@ -77,16 +58,60 @@ export default function MeetingsList() {
       meeting.language.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleViewMeeting = (id: string) => {
+  const handleViewMeeting = (id: number) => {
     router.push(`/meetings/${id}`);
   };
 
-  const handleDeleteMeeting = (id: string) => {
-    setMeetings(meetings.filter((meeting) => meeting.id !== id));
-    toast.success("Meeting deleted", {
-      description: "The meeting has been removed from your list.",
-    });
+  const handleExportPDF = async (id: number) => {
+    try {
+      toast.info("Exporting PDF", {
+        description: "Your meeting notes are being exported as PDF.",
+      });
+
+      const pdfBlob = await exportMeetingAsPdf(id);
+
+      // Create a download link
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `meeting-${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("PDF Exported", {
+        description: "Your meeting notes have been exported successfully.",
+      });
+    } catch (error) {
+      toast.error("Export Failed", {
+        description: "Failed to export meeting notes. Please try again.",
+      });
+    }
   };
+
+  const handleDeleteMeeting = async (id: number) => {
+    try {
+      await deleteMeeting(id);
+      setMeetings(meetings.filter((meeting) => meeting.id !== id));
+      toast.success("Meeting deleted", {
+        description: "The meeting has been removed from your list.",
+      });
+    } catch (error) {
+      toast.error("Delete Failed", {
+        description: "Failed to delete meeting. Please try again.",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+        <span className="ml-2 text-gray-500">Loading meetings...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -130,7 +155,7 @@ export default function MeetingsList() {
                 <TableRow key={meeting.id}>
                   <TableCell className="font-medium">{meeting.title}</TableCell>
                   <TableCell>{meeting.date}</TableCell>
-                  <TableCell>{meeting.duration}</TableCell>
+                  <TableCell>{meeting.duration || "Processing..."}</TableCell>
                   <TableCell>{meeting.language}</TableCell>
                   <TableCell>
                     <Badge
@@ -140,7 +165,9 @@ export default function MeetingsList() {
                     >
                       {meeting.status === "completed"
                         ? "Completed"
-                        : "Processing"}
+                        : meeting.status === "processing"
+                        ? "Processing"
+                        : "Failed"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -158,7 +185,13 @@ export default function MeetingsList() {
                           <FileText className="mr-2 h-4 w-4" />
                           View Notes
                         </DropdownMenuItem>
-
+                        <DropdownMenuItem
+                          onClick={() => handleExportPDF(meeting.id)}
+                          disabled={meeting.status !== "completed"}
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          Export PDF
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteMeeting(meeting.id)}
                           className="text-red-600"
