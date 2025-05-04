@@ -45,14 +45,17 @@ export default function MeetingDetailComponent({
     fetchMeeting();
 
     // Poll for updates if the meeting is still processing
-    const intervalId = setInterval(() => {
-      if (meeting && meeting.status === "processing") {
-        fetchMeeting();
-      }
-    }, 5000);
+    // const intervalId = setInterval(() => {
+    //   if (meeting && meeting.status === "processing") {
+    //     fetchMeeting();
+    //   }
+    // }, 5000);
 
-    return () => clearInterval(intervalId);
-  }, [meetingId, meeting]);
+    // return () => clearInterval(intervalId);
+  }, [
+    meetingId,
+    // meeting
+  ]);
 
   const fetchMeeting = async () => {
     try {
